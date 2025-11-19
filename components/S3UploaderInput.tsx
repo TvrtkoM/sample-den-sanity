@@ -6,6 +6,7 @@ import {set, unset, useFormValue} from 'sanity'
 import {Card, Stack, Text, Button, Flex, Spinner} from '@sanity/ui'
 import {FFmpeg} from '@ffmpeg/ffmpeg'
 import {fetchFile, toBlobURL} from '@ffmpeg/util'
+import { hmacSha256Hex } from '../utils/hmac'
 
 interface HighResFileValue {
   fileName?: string
@@ -43,7 +44,6 @@ export default function S3UploaderInput(props: ObjectInputProps<HighResFileValue
 
         if (!cancelled) {
           setIsFfmpegReady(true)
-          console.log('FFMPEG READY')
         }
       } catch (err) {
         console.error('FFmpeg load failed:', err)
@@ -97,7 +97,6 @@ export default function S3UploaderInput(props: ObjectInputProps<HighResFileValue
         const mp3Bytes = typeof mp3Data === 'string' ? new TextEncoder().encode(mp3Data) : mp3Data
 
         // -----------------------------
-        // ⭐ FINAL TYPE-SAFE FIX ⭐
         // Ensures Blob gets a real ArrayBuffer (never SharedArrayBuffer)
         // -----------------------------
         const mp3Buffer = new Uint8Array(mp3Bytes).buffer.slice(0)
@@ -116,9 +115,23 @@ export default function S3UploaderInput(props: ObjectInputProps<HighResFileValue
         formData.append('mp3', mp3File)
         formData.append('documentId', documentId)
 
+        const uploadSecret = process.env.SANITY_STUDIO_UPLOAD_SECRET
+
+        if (!uploadSecret) {
+          throw new Error('SANITY_STUDIO_UPLOAD_SECRET is not configured')
+        }
+
+        const timestamp = Date.now().toString()
+        const message = `${documentId}:${timestamp}`
+        const signature = await hmacSha256Hex(uploadSecret, message)
+
         const res = await fetch(`${process.env.SANITY_STUDIO_API_BASE_URL}/upload`, {
           method: 'POST',
           body: formData,
+          headers: {
+            'x-upload-timestamp': timestamp,
+            'x-upload-signature': signature
+          }
         })
 
         const data = await res.json()

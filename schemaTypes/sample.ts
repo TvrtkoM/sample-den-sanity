@@ -74,10 +74,47 @@ export const sample = defineType({
           readOnly: true,
         }),
       ],
-      options: {
-        collapsible: true,
-        collapsed: false,
-      },
+      validation: (Rule) =>
+        Rule.custom((value, context) => {
+          // -------------------------------
+          // no upload → invalid
+          // -------------------------------
+          if (!value) {
+            return 'You must upload a WAV file'
+          }
+
+          if (!value.s3Key) {
+            return 'WAV file missing. Please upload.'
+          }
+
+          if (!value.mp3AssetId) {
+            return 'MP3 preview not generated yet.'
+          }
+
+          // -------------------------------
+          // Cross-check previewFile consistency
+          // -------------------------------
+
+          // Access the parent document:
+          const doc = context.parent as {
+            previewFile?: {
+              asset?: { _ref?: string }
+            }
+          }
+
+          const previewFile = doc.previewFile
+          if (!previewFile)
+            return 'Preview MP3 file missing.'
+
+          const assetRef = previewFile?.asset?._ref
+          if (!assetRef)
+            return 'Preview MP3 asset reference is missing.'
+
+          if (assetRef !== value.mp3AssetId)
+            return 'Preview MP3 does not match uploaded WAV.'
+
+          return true
+        }),
     }),
 
     // --- MP3 Preview (Sanity asset reference) ---
