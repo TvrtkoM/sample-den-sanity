@@ -31,6 +31,13 @@ export const sample = defineType({
       type: 'text',
     }),
 
+    defineField({
+      name: 'priceUsd',
+      title: 'Price (USD)',
+      type: 'number',
+      validation: (Rule) => Rule.required()
+    }),
+
     // --- Categories (many-to-many) ---
     defineField({
       name: 'categories',
