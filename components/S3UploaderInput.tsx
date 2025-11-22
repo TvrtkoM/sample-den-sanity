@@ -4,9 +4,35 @@ import React, {useState, useCallback, useEffect, useRef} from 'react'
 import type {ObjectInputProps} from 'sanity'
 import {set, unset, useFormValue} from 'sanity'
 import {Card, Stack, Text, Button, Flex, Spinner} from '@sanity/ui'
-import {FFmpeg} from '@ffmpeg/ffmpeg'
-import {fetchFile, toBlobURL} from '@ffmpeg/util'
 import { hmacSha256Hex } from '../utils/hmac'
+
+type FFmpegCtor = typeof import('@ffmpeg/ffmpeg').FFmpeg
+type FetchFileFn = typeof import('@ffmpeg/util').fetchFile
+type ToBlobURLFn = typeof import('@ffmpeg/util').toBlobURL
+
+let ffmpegInstance: InstanceType<FFmpegCtor> | null = null
+let fetchFileFn: FetchFileFn | null = null
+let toBlobURLFn: ToBlobURLFn | null = null
+
+async function getFfmpegRuntime() {
+  if (!ffmpegInstance || !fetchFileFn || !toBlobURLFn) {
+    const [{ FFmpeg }, util] = await Promise.all([
+      import('@ffmpeg/ffmpeg'),
+      import('@ffmpeg/util'),
+    ])
+
+    fetchFileFn = util.fetchFile
+    toBlobURLFn = util.toBlobURL
+
+    ffmpegInstance = new FFmpeg()
+  }
+
+  return {
+    ffmpeg: ffmpegInstance!,
+    fetchFile: fetchFileFn!,
+    toBlobURL: toBlobURLFn!,
+  }
+}
 
 interface HighResFileValue {
   fileName?: string
@@ -14,8 +40,6 @@ interface HighResFileValue {
   mp3AssetId?: string
   mp3Url?: string
 }
-
-const ffmpeg = new FFmpeg()
 
 export default function S3UploaderInput(props: ObjectInputProps<HighResFileValue>) {
   const {value, onChange, readOnly} = props
@@ -33,6 +57,8 @@ export default function S3UploaderInput(props: ObjectInputProps<HighResFileValue
 
     const load = async () => {
       try {
+        const { ffmpeg, toBlobURL } = await getFfmpegRuntime()
+
         if (!ffmpeg.loaded) {
           const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm'
 
@@ -83,6 +109,8 @@ export default function S3UploaderInput(props: ObjectInputProps<HighResFileValue
       try {
         setIsEncoding(true)
         setError(null)
+
+        const { ffmpeg, fetchFile } = await getFfmpegRuntime()
 
         // -----------------------------
         // 1️⃣ WAV → MP3 (browser-side ffmpeg.wasm)
