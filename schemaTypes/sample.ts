@@ -34,7 +34,7 @@ export const sample = defineType({
       name: 'priceUsd',
       title: 'Price (USD)',
       type: 'number',
-      validation: (Rule) => Rule.required()
+      validation: (Rule) => Rule.required().min(0.1)
     }),
 
     // --- Categories (many-to-many) ---
@@ -43,6 +43,9 @@ export const sample = defineType({
       title: 'Categories',
       type: 'array',
       of: [{ type: 'reference', to: [{ type: 'category' }] }],
+      options: {
+        layout: 'tags'
+      },
       validation: (Rule) => 
         Rule.required()
           .min(1)
@@ -52,7 +55,8 @@ export const sample = defineType({
     // --- High-resolution file (WAV on S3) ---
     defineField({
       name: 'highResFile',
-      type: 'highResFile'
+      type: 'highResFile',
+      validation: Rule => Rule.required().error('High-resolution WAV is required')
     }),
 
     // --- MP3 Preview (Sanity asset reference) ---

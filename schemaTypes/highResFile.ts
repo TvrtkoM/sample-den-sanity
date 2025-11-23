@@ -5,63 +5,55 @@ export const highResFile = defineType({
   name: 'highResFile',
   title: 'High-Res WAV (private S3 storage)',
   type: 'object',
+
   fields: [
     defineField({
       name: 'fileName',
       type: 'string',
       readOnly: true,
     }),
+
     defineField({
       name: 's3Key',
       type: 'string',
       readOnly: true,
     }),
+
     defineField({
       name: 'mp3AssetId',
       type: 'string',
       readOnly: true,
     }),
+
     defineField({
       name: 'mp3Url',
       type: 'url',
       readOnly: true,
     }),
   ],
+
   components: {
     input: S3UploaderInput,
   },
 
-  validation: (Rule) =>
+  validation: Rule =>
     Rule.custom((value, context) => {
-      if (!value) {
-        return 'You must upload a WAV file'
-      }
+      if (!value) return 'You must upload a WAV file'
+      if (!value.s3Key) return 'WAV upload missing or incomplete'
+      if (!value.mp3AssetId) return 'MP3 preview was not generated'
 
-      if (!value.s3Key) {
-        return 'WAV file missing. Please upload.'
-      }
-
-      if (!value.mp3AssetId) {
-        return 'MP3 preview not generated yet.'
-      }
-
-      // Access the parent document:
+      // Parent document
       const doc = context.parent as {
-        previewFile?: {
-          asset?: { _ref?: string }
-        }
+        previewFile?: { asset?: { _ref?: string } }
       }
 
-      const previewFile = doc.previewFile
-      if (!previewFile)
-        return 'Preview MP3 file missing.'
+      const previewAsset = doc?.previewFile?.asset?._ref
 
-      const assetRef = previewFile?.asset?._ref
-      if (!assetRef)
-        return 'Preview MP3 asset reference is missing.'
+      if (!previewAsset)
+        return 'Preview MP3 asset is missing — this should be created automatically.'
 
-      if (assetRef !== value.mp3AssetId)
-        return 'Preview MP3 does not match uploaded WAV.'
+      if (value.mp3AssetId !== previewAsset)
+        return 'Preview MP3 and WAV file do not match.'
 
       return true
     }),
