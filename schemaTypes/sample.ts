@@ -1,5 +1,4 @@
 import { defineType, defineField } from 'sanity'
-import S3UploaderInput from '../components/S3UploaderInput'
 
 export const sample = defineType({
   name: 'sample',
