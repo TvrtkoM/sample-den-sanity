@@ -43,7 +43,10 @@ export const sample = defineType({
       title: 'Categories',
       type: 'array',
       of: [{ type: 'reference', to: [{ type: 'category' }] }],
-      validation: (Rule) => Rule.min(1).warning('Add at least one category'),
+      validation: (Rule) => 
+        Rule.required()
+          .min(1)
+          .error('Add at least one category'),
     }),
 
     // --- High-resolution file (WAV on S3) ---
@@ -73,8 +76,6 @@ export const sample = defineType({
       categories: 'categories',
     },
     prepare({ title, categories }) {
-      // categories are references; only IDs are available here,
-      // so we just show a count to avoid the invalid `categories[]->title` path.
       const count = Array.isArray(categories) ? categories.length : 0
       return {
         title,
