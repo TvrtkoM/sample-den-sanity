@@ -11,6 +11,7 @@ export default defineCliConfig({
      * Learn more at https://www.sanity.io/docs/cli#auto-updates
      */
     autoUpdates: true,
+    appId: 'ij3bdthmgjgb1dv5ljdkhl3y',
   },
   typegen: {
     path: "../sample-den/groq/**/*.ts",
