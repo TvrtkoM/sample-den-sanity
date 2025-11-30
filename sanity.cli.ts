@@ -12,6 +12,11 @@ export default defineCliConfig({
      */
     autoUpdates: true,
   },
+  typegen: {
+    path: "../sample-den/groq/**/*.ts",
+    schema: './schema.json',
+    generates: '../sample-den/groq-generated/sanity-types.ts'
+  },
   vite: {
     optimizeDeps: {
       exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"],
