@@ -16,7 +16,7 @@ export default defineCliConfig({
   typegen: {
     path: "../sample-den/groq/**/*.ts",
     schema: './schema.json',
-    generates: '../sample-den/groq-generated/sanity-types.ts'
+    generates: '../sample-den/generated/groq/sanity-types.ts'
   },
   vite: {
     optimizeDeps: {
