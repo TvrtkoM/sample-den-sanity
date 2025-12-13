@@ -18,10 +18,10 @@
   "dependencies": {
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
-    "@sanity/vision": "^4.19.0",
-    "react": "^19.1",
-    "react-dom": "^19.1",
-    "sanity": "^4.19.0",
+    "@sanity/vision": "^4.21.1",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "sanity": "^4.21.1",
     "sanity-plugin-media": "^4.0.0",
     "styled-components": "^6.1.18"
   },
